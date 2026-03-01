@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import String, Integer, Float, DateTime, Enum, ForeignKey
+from sqlalchemy import String, Float, DateTime, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
@@ -18,7 +18,7 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
     sku: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
     price: Mapped[float] = mapped_column(Float, nullable=False)
-    quantity: Mapped[int] = mapped_column(Integer, default=0)
+    quantity: Mapped[float] = mapped_column(Float, default=0)
     unit_type: Mapped[UnitType] = mapped_column(Enum(UnitType), nullable=False)
     unit_label: Mapped[UnitLabel] = mapped_column(
         Enum(UnitLabel), nullable=False)

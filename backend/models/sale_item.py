@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Integer, Float, ForeignKey
+from sqlalchemy import Float, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,7 +15,7 @@ class SaleItem(Base):
         UUID(as_uuid=True), ForeignKey("sales.id"))
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("products.id"))
-    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
     price_at_sale: Mapped[float] = mapped_column(Float, nullable=False)
 
     sale = relationship("Sale", back_populates="items")
