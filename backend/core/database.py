@@ -17,6 +17,15 @@ except Exception as e:
     raise RuntimeError(f"Failed to initialize database engine: {e}")
 
 
+def get_db():
+    """FastAPI dependency — yields a DB session, closes it when the request ends."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 def create_tables():
     from models.base import Base
     # Import all models so Base.metadata knows about them
