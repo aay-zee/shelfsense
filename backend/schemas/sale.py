@@ -9,17 +9,15 @@ from .sale_item import SaleItemCreate, SaleItemRead
 
 
 # ── Request body for POST /sales ──
-# total_amount is computed server-side from the items
+# store_id, user_id, and total_amount are all set server-side
 class SaleCreate(Base):
-    store_id: uuid.UUID
-    user_id: uuid.UUID
     items: list[SaleItemCreate]        # at least one item expected
 
 
 # ── Request body for PATCH /sales/{id} ──
+# Only items can be corrected; store/user are immutable
 class SaleUpdate(Base):
-    store_id: uuid.UUID | None = None
-    user_id: uuid.UUID | None = None
+    items: list[SaleItemCreate] | None = None
 
 
 # ── Response body returned by GET/POST /sales ──

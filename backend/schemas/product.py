@@ -8,7 +8,6 @@ from pydantic import ConfigDict
 
 # ── POST /products ──
 class ProductCreate(Base):
-    store_id: uuid.UUID                # required — which store this product belongs to
     name: str
     sku: str | None = None             # optional, so give it a default
     price: float
