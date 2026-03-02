@@ -6,12 +6,11 @@ from pydantic import ConfigDict, EmailStr
 from .base import Base
 
 
-# ── POST /users (registration) ──
+# ── Internal — used by the service layer (store_id is set by the register flow) ──
 class UserCreate(Base):
-    store_id: uuid.UUID
     name: str
-    email: EmailStr                    # validates email format automatically
-    password: str                      # plain text — service layer hashes it
+    email: EmailStr
+    password: str
 
 
 # ── PATCH /users/{id} ──
