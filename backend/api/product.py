@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.core.database import get_db
-from backend.schemas.product import ProductCreate, ProductRead
-from backend.core.deps import get_current_user
-from backend.models.user import User
-from backend.services.product import create_product as svc_create_product
-from backend.services.product import get_product as svc_get_product
-from backend.services.product import get_products_by_store as svc_get_products_by_store
-from backend.services.product import delete_product as svc_delete_product
-from backend.services.product import update_product as svc_update_product
+from core.database import get_db
+from schemas.product import ProductCreate, ProductRead
+from core.deps import get_current_user
+from models.user import User
+from services.product import create_product as svc_create_product
+from services.product import get_product as svc_get_product
+from services.product import get_products_by_store as svc_get_products_by_store
+from services.product import delete_product as svc_delete_product
+from services.product import update_product as svc_update_product
 
 router = APIRouter(
     prefix="/products",

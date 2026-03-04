@@ -2,8 +2,8 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from backend.models.product import Product
-from backend.schemas.product import ProductCreate
+from models.product import Product
+from schemas.product import ProductCreate
 
 
 def create_product(db: Session, payload: ProductCreate, store_id: uuid.UUID) -> Product:

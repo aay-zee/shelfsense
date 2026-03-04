@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.core.database import get_db
-from backend.core.deps import get_current_user
-from backend.models.user import User
-from backend.schemas.sale import SaleCreate, SaleRead
-from backend.services.sale import (
+from core.database import get_db
+from core.deps import get_current_user
+from models.user import User
+from schemas.sale import SaleCreate, SaleRead
+from services.sale import (
     create_sale as svc_create_sale,
     get_sale as svc_get_sale,
     get_sales_by_store as svc_get_sales_by_store,

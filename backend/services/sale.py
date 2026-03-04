@@ -2,9 +2,9 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from backend.models.sale import Sale
-from backend.models.sale_item import SaleItem
-from backend.schemas.sale import SaleCreate
+from models.sale import Sale
+from models.sale_item import SaleItem
+from schemas.sale import SaleCreate
 
 
 def create_sale(

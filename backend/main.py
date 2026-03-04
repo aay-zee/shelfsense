@@ -12,6 +12,7 @@ from api.auth import router as auth_router
 from api.store import router as store_router
 from api.product import router as product_router
 from api.sale import router as sale_router
+from api.analytics import router as analytics_router
 
 
 app = FastAPI(title="ShelfSense")
@@ -27,3 +28,4 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(store_router, prefix="/api/v1")
 app.include_router(product_router, prefix="/api/v1")
 app.include_router(sale_router, prefix="/api/v1")
+app.include_router(analytics_router, prefix="/api/v1")
