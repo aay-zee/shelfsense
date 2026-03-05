@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # Import ALL models so SQLAlchemy registers them before any query runs.
 # Without this, relationship("Product") etc. fail with "failed to locate a name".
@@ -16,6 +17,15 @@ from api.analytics import router as analytics_router
 
 
 app = FastAPI(title="ShelfSense")
+
+# ── CORS ──
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],           # tighten in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")

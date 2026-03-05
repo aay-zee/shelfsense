@@ -1,5 +1,6 @@
 import uuid
-from sqlalchemy import DateTime, Float, ForeignKey
+from decimal import Decimal
+from sqlalchemy import DateTime, Numeric, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
@@ -16,7 +17,8 @@ class Sale(Base):
         UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    total_amount: Mapped[float] = mapped_column(Float, nullable=False)
+    total_amount: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc))
 

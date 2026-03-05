@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from core.database import get_db
-from schemas.product import ProductCreate, ProductRead
+from schemas.product import ProductCreate, ProductRead, ProductUpdate
 from core.deps import get_current_user
 from models.user import User
 from services.product import create_product as svc_create_product
@@ -29,7 +31,7 @@ def create_product(
 
 @router.get("/{product_id}", response_model=ProductRead)
 def get_product(
-    product_id: str,
+    product_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -42,17 +44,19 @@ def get_product(
 
 @router.get("/", response_model=list[ProductRead])
 def get_products(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Fetch all products belonging to the current user's store."""
-    return svc_get_products_by_store(db, current_user.store_id)
+    return svc_get_products_by_store(db, current_user.store_id, skip=skip, limit=limit)
 
 
 @router.patch("/{product_id}", response_model=ProductRead)
 def update_product(
-    product_id: str,
-    payload: ProductCreate,
+    product_id: uuid.UUID,
+    payload: ProductUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -65,7 +69,7 @@ def update_product(
 
 @router.delete("/{product_id}", status_code=204)
 def delete_product(
-    product_id: str,
+    product_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -73,4 +77,5 @@ def delete_product(
     product = svc_get_product(db, product_id)
     if not product or product.store_id != current_user.store_id:
         raise HTTPException(status_code=404, detail="Product not found")
-    return svc_delete_product(db, product_id)
+    svc_delete_product(db, product_id)
+    return None

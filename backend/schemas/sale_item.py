@@ -1,5 +1,6 @@
 
 import uuid
+from decimal import Decimal
 
 from pydantic import ConfigDict
 
@@ -9,14 +10,14 @@ from .base import Base
 # for post/put — sale_id is set server-side from the parent Sale
 class SaleItemCreate(Base):
     product_id: uuid.UUID
-    quantity: float
-    price_at_sale: float
+    quantity: Decimal
+    price_at_sale: Decimal
 
 
 # for update patch
 class SaleItemUpdate(Base):
-    quantity: float | None = None
-    price_at_sale: float | None = None
+    quantity: Decimal | None = None
+    price_at_sale: Decimal | None = None
 
 # for get response
 
@@ -27,5 +28,5 @@ class SaleItemRead(Base):
     id: uuid.UUID
     sale_id: uuid.UUID
     product_id: uuid.UUID
-    quantity: float
-    price_at_sale: float
+    quantity: Decimal
+    price_at_sale: Decimal

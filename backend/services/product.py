@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy.orm import Session
 
 from models.product import Product
-from schemas.product import ProductCreate
+from schemas.product import ProductCreate, ProductUpdate
 
 
 def create_product(db: Session, payload: ProductCreate, store_id: uuid.UUID) -> Product:
@@ -28,9 +28,17 @@ def get_product(db: Session, product_id: uuid.UUID) -> Product | None:
     return db.query(Product).filter(Product.id == product_id).first()
 
 
-def get_products_by_store(db: Session, store_id: uuid.UUID) -> list[Product]:
-    """Fetch all products belonging to a store."""
-    return db.query(Product).filter(Product.store_id == store_id).all()
+def get_products_by_store(
+    db: Session, store_id: uuid.UUID, skip: int = 0, limit: int = 50
+) -> list[Product]:
+    """Fetch products belonging to a store with pagination."""
+    return (
+        db.query(Product)
+        .filter(Product.store_id == store_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def delete_product(db: Session, product_id: uuid.UUID) -> None:
@@ -39,16 +47,14 @@ def delete_product(db: Session, product_id: uuid.UUID) -> None:
     if product:
         db.delete(product)
         db.commit()
-        return True
-    return False
 
 
-def update_product(db: Session, product_id: uuid.UUID, payload: ProductCreate) -> Product | None:
+def update_product(db: Session, product_id: uuid.UUID, payload: ProductUpdate) -> Product | None:
     """Update a product's details."""
     product = get_product(db, product_id)
     if not product:
         return None
-    for field, value in payload.dict(exclude_unset=True).items():
+    for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(product, field, value)
     db.commit()
     db.refresh(product)

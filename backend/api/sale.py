@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -33,7 +35,7 @@ def create_sale(
 
 @router.get("/{sale_id}", response_model=SaleRead)
 def get_sale(
-    sale_id: str,
+    sale_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -46,16 +48,18 @@ def get_sale(
 
 @router.get("/", response_model=list[SaleRead])
 def get_sales(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Fetch all sales belonging to the current user's store."""
-    return svc_get_sales_by_store(db, current_user.store_id)
+    return svc_get_sales_by_store(db, current_user.store_id, skip=skip, limit=limit)
 
 
 @router.delete("/{sale_id}", status_code=204)
 def delete_sale(
-    sale_id: str,
+    sale_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

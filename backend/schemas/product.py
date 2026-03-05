@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from datetime import datetime
 
 from .base import Base
@@ -10,9 +11,9 @@ from pydantic import ConfigDict
 class ProductCreate(Base):
     name: str
     sku: str | None = None             # optional, so give it a default
-    price: float
-    # float — supports weight/volume (8.5 kg)
-    quantity: float = 0
+    price: Decimal
+    # Decimal — supports weight/volume (8.5 kg)
+    quantity: Decimal = Decimal(0)
     unit_type: UnitType
     unit_label: UnitLabel
 
@@ -21,8 +22,8 @@ class ProductCreate(Base):
 class ProductUpdate(Base):
     name: str | None = None
     sku: str | None = None
-    price: float | None = None
-    quantity: float | None = None
+    price: Decimal | None = None
+    quantity: Decimal | None = None
     unit_type: UnitType | None = None
     unit_label: UnitLabel | None = None
 
@@ -35,8 +36,9 @@ class ProductRead(Base):
     store_id: uuid.UUID
     name: str
     sku: str | None
-    price: float
-    quantity: float
+    price: Decimal
+    quantity: Decimal
     unit_type: UnitType
     unit_label: UnitLabel
     created_at: datetime
+    updated_at: datetime

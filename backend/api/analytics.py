@@ -153,20 +153,33 @@ def slow_moving_items(
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
     # Left-join so products with NO sales still appear (total_sold = 0).
+    # Subquery approach: first get per-product sales in the time window,
+    # then left-join products to it.
+    from sqlalchemy import literal_column
+    from sqlalchemy.orm import aliased
+
+    sales_sub = (
+        db.query(
+            SaleItem.product_id,
+            func.sum(SaleItem.quantity).label("total_sold"),
+        )
+        .join(Sale, SaleItem.sale_id == Sale.id)
+        .filter(Sale.store_id == current_user.store_id)
+        .filter(Sale.created_at >= cutoff)
+        .group_by(SaleItem.product_id)
+        .subquery()
+    )
+
     rows = (
         db.query(
             Product.id.label("product_id"),
             Product.name.label("product_name"),
-            func.coalesce(func.sum(SaleItem.quantity), 0).label("total_sold"),
+            func.coalesce(sales_sub.c.total_sold, 0).label("total_sold"),
         )
-        .outerjoin(SaleItem, SaleItem.product_id == Product.id)
-        .outerjoin(
-            Sale,
-            (SaleItem.sale_id == Sale.id) & (Sale.created_at >= cutoff),
-        )
+        .outerjoin(sales_sub, sales_sub.c.product_id == Product.id)
         .filter(Product.store_id == current_user.store_id)
-        .group_by(Product.id, Product.name)
-        .order_by(func.coalesce(func.sum(SaleItem.quantity), 0).asc())
+        .group_by(Product.id, Product.name, sales_sub.c.total_sold)
+        .order_by(func.coalesce(sales_sub.c.total_sold, 0).asc())
         .limit(limit)
         .all()
     )

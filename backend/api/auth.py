@@ -20,7 +20,6 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     Returns 409 if the email is already taken.
     """
 
-    print("hello in register")
     if get_user_by_email(db, payload.email):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

@@ -1,5 +1,6 @@
 
 import uuid
+from decimal import Decimal
 from datetime import datetime
 
 from pydantic import ConfigDict
@@ -27,6 +28,6 @@ class SaleRead(Base):
     id: uuid.UUID
     store_id: uuid.UUID
     user_id: uuid.UUID
-    total_amount: float
+    total_amount: Decimal
     created_at: datetime
     items: list[SaleItemRead]          # nested line items
