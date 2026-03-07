@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-
+from decimal import Decimal
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -225,7 +225,7 @@ def stock_health_summary(
 
     summary = {
         "total_products": len(products),
-        "total_stock_value": 0.0,
+        "total_stock_value": Decimal(0),
         "out_of_stock": 0,
         "critical": 0,
         "low": 0,
