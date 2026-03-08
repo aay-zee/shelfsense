@@ -14,6 +14,7 @@ class ProductCreate(Base):
     price: Decimal
     # Decimal — supports weight/volume (8.5 kg)
     quantity: Decimal = Decimal(0)
+    min_stock: int = 0
     unit_type: UnitType
     unit_label: UnitLabel
 
@@ -24,6 +25,7 @@ class ProductUpdate(Base):
     sku: str | None = None
     price: Decimal | None = None
     quantity: Decimal | None = None
+    min_stock: int | None = None
     unit_type: UnitType | None = None
     unit_label: UnitLabel | None = None
 
@@ -38,6 +40,7 @@ class ProductRead(Base):
     sku: str | None
     price: Decimal
     quantity: Decimal
+    min_stock: int
     unit_type: UnitType
     unit_label: UnitLabel
     created_at: datetime

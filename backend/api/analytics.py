@@ -255,3 +255,58 @@ def stock_health_summary(
 
     summary["total_stock_value"] = round(summary["total_stock_value"], 2)
     return summary
+
+
+# ── 6. Today's Sales Total ────────────────────────────────────────
+@router.get("/today-sales")
+def today_sales(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Total revenue and number of transactions for today."""
+    start_of_day = datetime.now(timezone.utc).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    row = (
+        db.query(
+            func.coalesce(func.sum(Sale.total_amount), 0).label("total"),
+            func.count(Sale.id).label("count"),
+        )
+        .filter(Sale.store_id == current_user.store_id)
+        .filter(Sale.created_at >= start_of_day)
+        .one()
+    )
+    return {"total": round(row.total, 2), "count": row.count}
+
+
+# ── 7. Sales Trend (daily totals) ─────────────────────────────────
+@router.get("/sales-trend")
+def sales_trend(
+    days: int = Query(7, ge=1, le=90),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Daily sales totals for the last *days* days."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days - 1)
+    start = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    rows = (
+        db.query(
+            func.date(Sale.created_at).label("date"),
+            func.coalesce(func.sum(Sale.total_amount), 0).label("total"),
+        )
+        .filter(Sale.store_id == current_user.store_id)
+        .filter(Sale.created_at >= start)
+        .group_by(func.date(Sale.created_at))
+        .order_by(func.date(Sale.created_at))
+        .all()
+    )
+
+    # Build a map so we can fill in zero-sale days
+    sales_map = {str(r.date): float(r.total) for r in rows}
+    trend = []
+    for i in range(days):
+        d = (start + timedelta(days=i)).date()
+        trend.append({"date": str(d), "sales": sales_map.get(str(d), 0)})
+
+    return trend

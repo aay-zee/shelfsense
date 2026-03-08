@@ -45,7 +45,7 @@ export function Register() {
     // create a store and then user
     const response = await api.post("/auth/register", payload);
     console.log("Registration successful (Response):", response);
-    // For now, just navigate to the login page
+    // navigate to the login page
     navigate("/");
   };
 

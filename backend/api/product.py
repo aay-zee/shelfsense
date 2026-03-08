@@ -10,6 +10,8 @@ from models.user import User
 from services.product import create_product as svc_create_product
 from services.product import get_product as svc_get_product
 from services.product import get_products_by_store as svc_get_products_by_store
+from services.product import count_products_by_store as svc_count_products_by_store
+from services.product import count_recent_products_by_store as svc_count_recent_products
 from services.product import delete_product as svc_delete_product
 from services.product import update_product as svc_update_product
 
@@ -27,6 +29,27 @@ def create_product(
 ):
     """Create a new product in the current user's store."""
     return svc_create_product(db, payload, current_user.store_id)
+
+
+@router.get("/count")
+def get_product_count(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the total number of products in the current user's store."""
+    total = svc_count_products_by_store(db, current_user.store_id)
+    return {"count": total}
+
+
+@router.get("/count/recent")
+def get_recent_product_count(
+    days: int = Query(7, ge=1, le=365),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the number of products added in the last *days* days."""
+    total = svc_count_recent_products(db, current_user.store_id, days)
+    return {"count": total, "days": days}
 
 
 @router.get("/{product_id}", response_model=ProductRead)

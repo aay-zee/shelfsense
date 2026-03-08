@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -14,6 +15,7 @@ def create_product(db: Session, payload: ProductCreate, store_id: uuid.UUID) -> 
         sku=payload.sku,
         price=payload.price,
         quantity=payload.quantity,
+        min_stock=payload.min_stock,
         unit_type=payload.unit_type,
         unit_label=payload.unit_label,
     )
@@ -26,6 +28,21 @@ def create_product(db: Session, payload: ProductCreate, store_id: uuid.UUID) -> 
 def get_product(db: Session, product_id: uuid.UUID) -> Product | None:
     """Fetch a product by its ID."""
     return db.query(Product).filter(Product.id == product_id).first()
+
+
+def count_products_by_store(db: Session, store_id: uuid.UUID) -> int:
+    """Return the total number of products belonging to a store."""
+    return db.query(Product).filter(Product.store_id == store_id).count()
+
+
+def count_recent_products_by_store(db: Session, store_id: uuid.UUID, days: int) -> int:
+    """Return the number of products added in the last *days* days."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    return (
+        db.query(Product)
+        .filter(Product.store_id == store_id, Product.created_at >= cutoff)
+        .count()
+    )
 
 
 def get_products_by_store(

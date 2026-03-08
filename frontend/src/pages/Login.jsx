@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -13,6 +13,10 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
+  useEffect(() => {
+    localStorage.removeItem("access_token");
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -26,7 +30,7 @@ export function Login() {
     console.log("Login successful (Response):", response);
     const token = response.data.access_token;
     localStorage.setItem("access_token", token);
-    //navigate("/app");
+    navigate("/app");
   };
 
   return (
