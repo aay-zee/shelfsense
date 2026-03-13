@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from core.database import create_tables
 
 # Import ALL models so SQLAlchemy registers them before any query runs.
 # Without this, relationship("Product") etc. fail with "failed to locate a name".
@@ -16,12 +18,20 @@ from api.sale import router as sale_router
 from api.analytics import router as analytics_router
 
 
-app = FastAPI(title="ShelfSense")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_tables()
+    yield
+
+app = FastAPI(title="ShelfSense", lifespan=lifespan)
 
 # ── CORS ──
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],           # tighten in production
+    allow_origins=[
+        "http://localhost:5173", 
+        "https://shelfsense-xi.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

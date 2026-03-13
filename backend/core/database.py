@@ -36,8 +36,7 @@ def create_tables():
     import models.sale_item
 
     try:
-        # delete existing tables
-        Base.metadata.drop_all(bind=engine)
+        # Create tables if they do not exist
         Base.metadata.create_all(bind=engine)
         print("Tables created successfully.")
     except Exception as e:
