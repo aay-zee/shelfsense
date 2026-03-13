@@ -44,3 +44,23 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
     if not verify_password(password, user.password_hash):
         return None
     return user
+
+
+def update_user_profile(db: Session, user: User, name: str | None, email: str | None) -> User:
+    """Update the user's name and/or email."""
+    if name is not None:
+        user.name = name
+    if email is not None:
+        user.email = email
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def change_user_password(db: Session, user: User, new_password: str) -> User:
+    """Change the user's password."""
+    user.password_hash = hash_password(new_password)
+    db.commit()
+    db.refresh(user)
+    return user
+

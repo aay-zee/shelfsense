@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import {
   LayoutDashboard,
@@ -9,6 +10,15 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "../components/ui/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../components/ui/dialog";
+import { Button } from "../components/ui/button";
 
 const navItems = [
   { path: "/app", label: "Dashboard", icon: LayoutDashboard },
@@ -22,6 +32,7 @@ const navItems = [
 export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const isActive = (path) => {
     if (path === "/app") {
@@ -31,7 +42,6 @@ export function Layout() {
   };
 
   const handleLogout = () => {
-    // clear authentication tokens
     localStorage.removeItem("access_token");
     navigate("/");
   };
@@ -39,7 +49,7 @@ export function Layout() {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0">
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -79,8 +89,8 @@ export function Layout() {
         {/* User section */}
         <div className="p-4 border-t border-gray-200">
           <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 w-full transition-colors"
+            onClick={() => setShowLogoutDialog(true)}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 w-full transition-colors"
           >
             <LogOut className="w-5 h-5" />
             <span className="font-medium">Logout</span>
@@ -89,9 +99,36 @@ export function Layout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 h-screen overflow-auto">
         <Outlet />
       </main>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to logout? You will need to sign in again to
+              access your account.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

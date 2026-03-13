@@ -91,22 +91,48 @@ def restock_recommendations(
         info = velocity_map.get(p.id)
         vel = info["velocity_per_day"] if info else 0
         days_left = p.quantity / vel if vel > 0 else float("inf")
+        below_min = p.min_stock > 0 and p.quantity < p.min_stock
 
-        if days_left <= threshold_days:
-            recommended_qty = max(0, round(vel * days - p.quantity, 2))
+        if p.quantity == 0:
+            severity = "critical"
+        elif below_min and p.quantity <= p.min_stock * Decimal("0.5"):
+            severity = "critical"
+        elif below_min:
+            severity = "warning"
+        elif days_left <= 3:
+            severity = "critical"
+        elif days_left <= threshold_days:
+            severity = "warning"
+        else:
+            severity = None  # not flagged
+
+        if severity:
+            recommended_qty = (
+                max(0, round(vel * days - p.quantity, 2)) if vel > 0
+                else max(0, p.min_stock - int(p.quantity))
+            )
             recommendations.append(
                 {
                     "product_id": str(p.id),
                     "product_name": p.name,
                     "current_stock": p.quantity,
+                    "min_stock": p.min_stock,
                     "velocity_per_day": round(vel, 4),
-                    "days_of_stock_left": round(days_left, 2),
+                    "days_of_stock_left": round(days_left, 2) if days_left != float("inf") else None,
                     "recommended_restock_qty": recommended_qty,
+                    "severity": severity,
                 }
             )
 
-    # Most urgent first
-    recommendations.sort(key=lambda x: x["days_of_stock_left"])
+    # Most urgent first (critical before warning, then by days left)
+    severity_order = {"critical": 0, "warning": 1}
+    recommendations.sort(
+        key=lambda x: (
+            severity_order.get(x["severity"], 2),
+            x["days_of_stock_left"] if x["days_of_stock_left"] is not None else float(
+                "inf"),
+        )
+    )
     return recommendations
 
 
@@ -135,6 +161,7 @@ def fast_moving_items(
             "velocity_per_day": round(r.total_sold / days, 4),
         }
         for r in rows
+        if r.total_sold / days >= Decimal("0.5")  # at least 0.5 units/day
     ]
 
 
@@ -192,6 +219,7 @@ def slow_moving_items(
             "velocity_per_day": round(r.total_sold / days, 4),
         }
         for r in rows
+        if r.total_sold / days < Decimal("0.5")  # less than 0.5 units/day
     ]
 
 
@@ -236,9 +264,16 @@ def stock_health_summary(
     for p in products:
         summary["total_stock_value"] += p.quantity * p.price
         vel = velocity_map.get(p.id, 0)
+        below_min = p.min_stock > 0 and p.quantity < p.min_stock
 
         if p.quantity == 0:
             summary["out_of_stock"] += 1
+        elif below_min:
+            # Stock is below the user-defined minimum — always flag it
+            if p.quantity <= p.min_stock * Decimal("0.5"):
+                summary["critical"] += 1
+            else:
+                summary["low"] += 1
         elif vel > 0:
             days_left = p.quantity / vel
             if days_left <= 3:

@@ -26,3 +26,10 @@ class Token(Base):
 # ── Internal — data extracted from a decoded JWT ──
 class TokenData(Base):
     user_id: str | None = None
+
+
+# ── PATCH /auth/me/password ──
+class PasswordChangeRequest(Base):
+    current_password: str
+    new_password: str
+

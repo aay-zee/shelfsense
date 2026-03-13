@@ -247,7 +247,10 @@ export function Dashboard() {
                   <div>
                     <p className="font-medium text-gray-900">{alert.product}</p>
                     <p className="text-sm text-gray-600">
-                      Stock: {alert.currentStock} • ~{alert.daysLeft} days left
+                      Stock: {alert.currentStock}
+                      {alert.minStock > 0 && ` / Min: ${alert.minStock}`}
+                      {alert.daysLeft != null &&
+                        ` • ~${alert.daysLeft} days left`}
                     </p>
                   </div>
                 </div>
@@ -267,9 +270,6 @@ export function Dashboard() {
                         ? "Warning"
                         : "Low"}
                   </Badge>
-                  <Button size="sm" className="bg-teal-500 hover:bg-teal-600">
-                    Restock
-                  </Button>
                 </div>
               </div>
             ))}

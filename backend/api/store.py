@@ -4,14 +4,42 @@ from sqlalchemy.orm import Session
 
 from core.database import get_db
 from core.deps import get_current_user
-from schemas.store import StoreCreate, StoreRead
-from services.store import create_store, get_store, get_all_stores
+from models.user import User
+from schemas.store import StoreCreate, StoreRead, StoreUpdate
+from services.store import create_store, get_store, get_all_stores, update_store
 
 router = APIRouter(
     prefix="/stores",
     tags=["Stores"],
     dependencies=[Depends(get_current_user)],
 )
+
+
+@router.get("/my-store", response_model=StoreRead)
+def get_my_store(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the current user's store."""
+    store = get_store(db, current_user.store_id)
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+    return store
+
+
+@router.patch("/my-store", response_model=StoreRead)
+def update_my_store(
+    payload: StoreUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update the current user's store name."""
+    store = get_store(db, current_user.store_id)
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+    if payload.name is not None:
+        return update_store(db, store, payload.name)
+    return store
 
 
 # For admin I think
@@ -35,3 +63,4 @@ router = APIRouter(
 #     if not store:
 #         raise HTTPException(status_code=404, detail="Store not found")
 #     return store
+

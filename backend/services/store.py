@@ -22,3 +22,12 @@ def get_store(db: Session, store_id: uuid.UUID) -> Store | None:
 def get_all_stores(db: Session) -> list[Store]:
     """Return every store."""
     return db.query(Store).all()
+
+
+def update_store(db: Session, store: Store, name: str) -> Store:
+    """Update the store name."""
+    store.name = name
+    db.commit()
+    db.refresh(store)
+    return store
+

@@ -3,7 +3,14 @@ import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
 import { Products } from "./pages/Products";
-import { dashboardLoader, productsLoader } from "./loaders";
+import {
+  dashboardLoader,
+  productsLoader,
+  recordSaleLoader,
+  insightsLoader,
+  analyticsLoader,
+  settingsLoader,
+} from "./loaders";
 import { RecordSale } from "./pages/RecordSale";
 import { Insights } from "./pages/Insights";
 import { Analytics } from "./pages/Analytics";
@@ -29,10 +36,14 @@ export const router = createBrowserRouter([
         children: [
           { index: true, Component: Dashboard, loader: dashboardLoader },
           { path: "products", Component: Products, loader: productsLoader },
-          { path: "record-sale", Component: RecordSale },
-          { path: "insights", Component: Insights },
-          { path: "analytics", Component: Analytics },
-          { path: "settings", Component: Settings },
+          {
+            path: "record-sale",
+            Component: RecordSale,
+            loader: recordSaleLoader,
+          },
+          { path: "insights", Component: Insights, loader: insightsLoader },
+          { path: "analytics", Component: Analytics, loader: analyticsLoader },
+          { path: "settings", Component: Settings, loader: settingsLoader },
         ],
       },
     ],

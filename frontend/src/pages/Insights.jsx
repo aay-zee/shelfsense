@@ -3,6 +3,7 @@ import {
   TrendingUp,
   TrendingDown,
   Lightbulb,
+  PackageOpen,
 } from "lucide-react";
 import {
   Card,
@@ -12,83 +13,11 @@ import {
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-
-const lowStockAlerts = [
-  {
-    id: 1,
-    product: "Milk (1L)",
-    current: 5,
-    min: 20,
-    critical: true,
-    suggested: 30,
-  },
-  {
-    id: 2,
-    product: "Cheese Slices",
-    current: 3,
-    min: 12,
-    critical: true,
-    suggested: 20,
-  },
-  {
-    id: 3,
-    product: "Bread (White)",
-    current: 8,
-    min: 15,
-    critical: false,
-    suggested: 25,
-  },
-  {
-    id: 4,
-    product: "Eggs (Dozen)",
-    current: 12,
-    min: 10,
-    critical: false,
-    suggested: 18,
-  },
-];
-
-const restockRecommendations = [
-  {
-    id: 1,
-    product: "Milk (1L)",
-    reason: "High sales velocity + low stock",
-    suggestedQty: 30,
-    estimatedDays: 3,
-    priority: "high",
-  },
-  {
-    id: 2,
-    product: "Bread (White)",
-    reason: "Consistent daily demand",
-    suggestedQty: 25,
-    estimatedDays: 5,
-    priority: "medium",
-  },
-  {
-    id: 3,
-    product: "Yogurt",
-    reason: "Approaching minimum stock level",
-    suggestedQty: 20,
-    estimatedDays: 7,
-    priority: "low",
-  },
-];
-
-const fastMoving = [
-  { id: 1, product: "Milk (1L)", soldPerWeek: 42, trend: "+12%" },
-  { id: 2, product: "Bread (White)", soldPerWeek: 38, trend: "+8%" },
-  { id: 3, product: "Eggs (Dozen)", soldPerWeek: 35, trend: "+15%" },
-  { id: 4, product: "Yogurt", soldPerWeek: 28, trend: "+5%" },
-];
-
-const slowMoving = [
-  { id: 1, product: "Cereal Box", soldPerWeek: 4, trend: "-3%" },
-  { id: 2, product: "Specialty Cheese", soldPerWeek: 2, trend: "-5%" },
-  { id: 3, product: "Organic Honey", soldPerWeek: 3, trend: "0%" },
-];
+import { useLoaderData } from "react-router";
 
 export function Insights() {
+  const { restockAlerts, fastMoving, slowMoving } = useLoaderData();
+
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
@@ -115,42 +44,68 @@ export function Insights() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {lowStockAlerts.map((alert) => (
-              <div
-                key={alert.id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      alert.critical
-                        ? "bg-red-500 animate-pulse"
-                        : "bg-yellow-500"
-                    }`}
-                  />
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {alert.product}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Current:{" "}
-                      <span className="font-medium">{alert.current}</span> •
-                      Min: <span className="font-medium">{alert.min}</span>
-                    </p>
+          {restockAlerts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <PackageOpen className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p>All products are well-stocked!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {restockAlerts.map((alert) => (
+                <div
+                  key={alert.product_id}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        alert.severity === "critical"
+                          ? "bg-red-500 animate-pulse"
+                          : "bg-yellow-500"
+                      }`}
+                    />
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {alert.product_name}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Stock:{" "}
+                        <span className="font-medium">
+                          {Number(alert.current_stock)}
+                        </span>
+                        {alert.min_stock > 0 && (
+                          <>
+                            {" "}
+                            • Min:{" "}
+                            <span className="font-medium">
+                              {alert.min_stock}
+                            </span>
+                          </>
+                        )}
+                        {alert.days_of_stock_left != null && (
+                          <> • ~{alert.days_of_stock_left} days left</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge
+                      variant={
+                        alert.severity === "critical"
+                          ? "destructive"
+                          : "default"
+                      }
+                    >
+                      {alert.severity === "critical" ? "Critical" : "Warning"}
+                    </Badge>
+                    <Button size="sm" className="bg-teal-500 hover:bg-teal-600">
+                      Order {alert.recommended_restock_qty}
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={alert.critical ? "destructive" : "default"}>
-                    {alert.critical ? "Critical" : "Warning"}
-                  </Badge>
-                  <Button size="sm" className="bg-teal-500 hover:bg-teal-600">
-                    Order {alert.suggested}
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -170,52 +125,59 @@ export function Insights() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {restockRecommendations.map((rec) => (
-              <div
-                key={rec.id}
-                className="p-4 bg-gradient-to-r from-blue-50 to-transparent rounded-lg border border-blue-100"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <p className="font-semibold text-gray-900">
-                        {rec.product}
+          {restockAlerts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Lightbulb className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p>No restock recommendations at this time</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {restockAlerts.map((rec) => (
+                <div
+                  key={rec.product_id}
+                  className="p-4 bg-gradient-to-r from-blue-50 to-transparent rounded-lg border border-blue-100"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <p className="font-semibold text-gray-900">
+                          {rec.product_name}
+                        </p>
+                        <Badge
+                          className={
+                            rec.severity === "critical"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }
+                        >
+                          {rec.severity === "critical" ? "high" : "medium"}{" "}
+                          priority
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {rec.velocity_per_day > 0
+                          ? `Selling ~${(rec.velocity_per_day * 7).toFixed(1)} units/week`
+                          : "Below minimum stock level"}
+                        {rec.days_of_stock_left != null &&
+                          ` • ~${rec.days_of_stock_left} days of stock left`}
                       </p>
-                      <Badge
-                        className={
-                          rec.priority === "high"
-                            ? "bg-red-100 text-red-700"
-                            : rec.priority === "medium"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-green-100 text-green-700"
-                        }
-                      >
-                        {rec.priority} priority
-                      </Badge>
+                      <p className="text-sm text-gray-500">
+                        Current stock: {Number(rec.current_stock)}
+                        {rec.min_stock > 0 &&
+                          ` • Min required: ${rec.min_stock}`}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{rec.reason}</p>
-                    <p className="text-sm text-gray-500">
-                      Estimated to last ~{rec.estimatedDays} days at current
-                      rate
-                    </p>
-                  </div>
-                  <div className="text-right ml-4">
-                    <p className="text-sm text-gray-600 mb-2">Suggested</p>
-                    <p className="text-2xl font-bold text-teal-600">
-                      {rec.suggestedQty}
-                    </p>
-                    <Button
-                      size="sm"
-                      className="mt-2 bg-teal-500 hover:bg-teal-600"
-                    >
-                      Add to Order
-                    </Button>
+                    <div className="text-right ml-4">
+                      <p className="text-sm text-gray-600 mb-2">Suggested</p>
+                      <p className="text-2xl font-bold text-teal-600">
+                        {rec.recommended_restock_qty}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -237,33 +199,40 @@ export function Insights() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {fastMoving.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-green-700">
-                        {index + 1}
-                      </span>
+            {fastMoving.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <TrendingUp className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>No sales data yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {fastMoving.map((item, index) => (
+                  <div
+                    key={item.product_id}
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-green-700">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {item.product_name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {Number(item.total_sold)} units/week
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {item.product}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {item.soldPerWeek} units/week
-                      </p>
-                    </div>
+                    <Badge className="bg-green-100 text-green-700">
+                      {(item.velocity_per_day * 7).toFixed(1)}/wk
+                    </Badge>
                   </div>
-                  <Badge className="bg-green-100 text-green-700">
-                    {item.trend}
-                  </Badge>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -283,33 +252,40 @@ export function Insights() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {slowMoving.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-orange-700">
-                        {index + 1}
-                      </span>
+            {slowMoving.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <TrendingDown className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>No product data yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {slowMoving.map((item, index) => (
+                  <div
+                    key={item.product_id}
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-orange-700">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {item.product_name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {Number(item.total_sold)} units/week
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {item.product}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {item.soldPerWeek} units/week
-                      </p>
-                    </div>
+                    <Badge className="bg-orange-100 text-orange-700">
+                      {(item.velocity_per_day * 7).toFixed(1)}/wk
+                    </Badge>
                   </div>
-                  <Badge className="bg-orange-100 text-orange-700">
-                    {item.trend}
-                  </Badge>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <div className="mt-4 p-3 bg-orange-50 rounded-lg">
               <p className="text-sm text-orange-800">
                 💡 <strong>Tip:</strong> Consider reducing order quantities for

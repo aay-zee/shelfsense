@@ -3,12 +3,20 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from core.database import get_db
-from core.security import create_access_token
-from schemas.auth import LoginRequest, RegisterRequest, Token
-from schemas.user import UserCreate, UserRead
+from core.security import create_access_token, verify_password
+from core.deps import get_current_user
+from schemas.auth import LoginRequest, RegisterRequest, Token, PasswordChangeRequest
+from schemas.user import UserCreate, UserRead, UserUpdate
 from services.store import create_store
-from services.user import authenticate_user, create_user, get_user_by_email
+from services.user import (
+    authenticate_user,
+    create_user,
+    get_user_by_email,
+    update_user_profile,
+    change_user_password,
+)
 from schemas.store import StoreCreate
+from models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -57,3 +65,43 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         )
     access_token = create_access_token(data={"sub": str(user.id)})
     return Token(access_token=access_token)
+
+
+@router.get("/me", response_model=UserRead)
+def get_me(current_user: User = Depends(get_current_user)):
+    """Return the currently authenticated user."""
+    return current_user
+
+
+@router.patch("/me", response_model=UserRead)
+def update_me(
+    payload: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update the current user's name and/or email."""
+    if payload.email and payload.email != current_user.email:
+        existing = get_user_by_email(db, payload.email)
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already in use",
+            )
+    return update_user_profile(db, current_user, payload.name, payload.email)
+
+
+@router.patch("/me/password")
+def change_password(
+    payload: PasswordChangeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Change the current user's password."""
+    if not verify_password(payload.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+    change_user_password(db, current_user, payload.new_password)
+    return {"message": "Password changed successfully"}
+

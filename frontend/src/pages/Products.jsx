@@ -31,6 +31,20 @@ import {
 import { Label } from "../components/ui/label";
 import api from "../api/axios";
 
+const UNIT_SHORT = {
+  PIECE: "pcs",
+  GRAM: "g",
+  KILOGRAM: "kg",
+  LITER: "L",
+  MILLILITER: "ml",
+};
+
+const UNIT_TYPE_LABEL = {
+  COUNT: "per piece",
+  WEIGHT: "by weight",
+  VOLUME: "by volume",
+};
+
 // // Mock data
 // const mockProducts = [
 //   {
@@ -175,8 +189,8 @@ export function Products() {
   };
 
   const handleAddProduct = async () => {
-    const qty = parseInt(newProduct.quantity);
-    const minStk = parseInt(newProduct.minStock);
+    const qty = parseFloat(newProduct.quantity);
+    const minStk = parseFloat(newProduct.minStock);
 
     const res = await api.post("/products/", {
       name: newProduct.name,
@@ -249,8 +263,8 @@ export function Products() {
       name: editProduct.name,
       sku: editProduct.sku || null,
       price: parseFloat(editProduct.price),
-      quantity: parseInt(editProduct.quantity),
-      min_stock: parseInt(editProduct.minStock),
+      quantity: parseFloat(editProduct.quantity),
+      min_stock: parseFloat(editProduct.minStock),
       unit_type: editProduct.unitType,
       unit_label: editProduct.unitLabel,
     });
@@ -338,9 +352,10 @@ export function Products() {
               <TableRow>
                 <TableHead>Product Name</TableHead>
                 <TableHead>SKU</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Quantity</TableHead>
+                <TableHead>Price/Unit</TableHead>
+                <TableHead>Stock</TableHead>
                 <TableHead>Min Stock</TableHead>
+                <TableHead>Sold By</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Velocity</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -351,7 +366,12 @@ export function Products() {
                 <TableRow key={product.id} className="hover:bg-gray-50">
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-gray-600">{product.sku}</TableCell>
-                  <TableCell>{Number(product.price).toFixed(2)}</TableCell>
+                  <TableCell>
+                    {Number(product.price).toFixed(2)}
+                    <span className="text-xs text-gray-400 ml-1">
+                      /{UNIT_SHORT[product.unit_label] || "pc"}
+                    </span>
+                  </TableCell>
                   <TableCell>
                     <span
                       className={
@@ -360,10 +380,18 @@ export function Products() {
                           : ""
                       }
                     >
-                      {product.quantity}
+                      {Number(product.quantity)}{" "}
+                      <span className="text-xs text-gray-400">
+                        {UNIT_SHORT[product.unit_label] || "pcs"}
+                      </span>
                     </span>
                   </TableCell>
-                  <TableCell>{product.minStock}</TableCell>
+                  <TableCell>{Number(product.minStock)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {UNIT_TYPE_LABEL[product.unit_type] || "piece"}
+                    </Badge>
+                  </TableCell>
                   <TableCell>{getStatusBadge(product.status)}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
@@ -437,7 +465,12 @@ export function Products() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">
+                  Price (Rs)
+                  {newProduct.unitLabel
+                    ? ` per ${UNIT_SHORT[newProduct.unitLabel] || "unit"}`
+                    : ""}
+                </Label>
                 <Input
                   id="price"
                   type="number"
@@ -450,10 +483,16 @@ export function Products() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="quantity">Current Quantity</Label>
+                <Label htmlFor="quantity">
+                  Current Stock
+                  {newProduct.unitLabel
+                    ? ` (${UNIT_SHORT[newProduct.unitLabel]})`
+                    : ""}
+                </Label>
                 <Input
                   id="quantity"
                   type="number"
+                  step={newProduct.unitType === "COUNT" ? "1" : "0.01"}
                   placeholder="0"
                   value={newProduct.quantity}
                   onChange={(e) =>
@@ -463,10 +502,16 @@ export function Products() {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="minStock">Minimum Stock Level</Label>
+              <Label htmlFor="minStock">
+                Minimum Stock Level
+                {newProduct.unitLabel
+                  ? ` (${UNIT_SHORT[newProduct.unitLabel]})`
+                  : ""}
+              </Label>
               <Input
                 id="minStock"
                 type="number"
+                step={newProduct.unitType === "COUNT" ? "1" : "0.01"}
                 placeholder="0"
                 value={newProduct.minStock}
                 onChange={(e) =>
@@ -575,7 +620,12 @@ export function Products() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label>Price ($)</Label>
+                <Label>
+                  Price (Rs)
+                  {editProduct.unitLabel
+                    ? ` per ${UNIT_SHORT[editProduct.unitLabel] || "unit"}`
+                    : ""}
+                </Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -586,9 +636,15 @@ export function Products() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Current Quantity</Label>
+                <Label>
+                  Current Stock
+                  {editProduct.unitLabel
+                    ? ` (${UNIT_SHORT[editProduct.unitLabel]})`
+                    : ""}
+                </Label>
                 <Input
                   type="number"
+                  step={editProduct.unitType === "COUNT" ? "1" : "0.01"}
                   value={editProduct.quantity}
                   onChange={(e) =>
                     setEditProduct({ ...editProduct, quantity: e.target.value })
@@ -597,9 +653,15 @@ export function Products() {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label>Minimum Stock Level</Label>
+              <Label>
+                Minimum Stock Level
+                {editProduct.unitLabel
+                  ? ` (${UNIT_SHORT[editProduct.unitLabel]})`
+                  : ""}
+              </Label>
               <Input
                 type="number"
+                step={editProduct.unitType === "COUNT" ? "1" : "0.01"}
                 value={editProduct.minStock}
                 onChange={(e) =>
                   setEditProduct({ ...editProduct, minStock: e.target.value })

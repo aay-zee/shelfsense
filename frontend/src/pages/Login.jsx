@@ -5,6 +5,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Checkbox } from "../components/ui/checkbox";
 import { Package } from "lucide-react";
+import { toast } from "sonner";
 import api from "../api/axios";
 
 export function Login() {
@@ -24,13 +25,19 @@ export function Login() {
     formData.append("username", email);
     formData.append("password", password);
 
-    const response = await api.post("/auth/login", formData, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    });
-    console.log("Login successful (Response):", response);
-    const token = response.data.access_token;
-    localStorage.setItem("access_token", token);
-    navigate("/app");
+    try {
+      const response = await api.post("/auth/login", formData, {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+      console.log("Login successful (Response):", response);
+      const token = response.data.access_token;
+      localStorage.setItem("access_token", token);
+      navigate("/app");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.detail || "Invalid email or password. Please try again."
+      );
+    }
   };
 
   return (
